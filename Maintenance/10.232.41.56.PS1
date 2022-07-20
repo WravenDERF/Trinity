@@ -5,7 +5,7 @@
         $Principal = New-ScheduledTaskPrincipal -UserId 'LOCALSERVICE' -RunLevel 'Highest' -LogonType 'ServiceAccount'
         $Settings = New-ScheduledTaskSettingsSet
         $Task = New-ScheduledTask -Action $Actions -Principal $Principal -Trigger $Trigger -Settings $Settings
-        Register-ScheduledTask 'LUHS\FredTest' -InputObject $Task
+        Register-ScheduledTask 'LUHS\Restart-Services (10.232.41.56)' -InputObject $Task
     }
     #Invoke-Command -ScriptBlock $ScheduledTask
 
