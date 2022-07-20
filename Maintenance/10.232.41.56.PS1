@@ -1,6 +1,6 @@
 #[Admin] Create Scheduled Task on local computer. 
     $ScheduledTask = {
-        $Actions = New-ScheduledTaskAction -Execute 'POWERSHELL' -Argument '-ExecutionPolicy RemoteSigned -Command "& {Invoke-Expression $($(Invoke-WebRequest 'https://raw.githubusercontent.com/WravenDERF/Trinity/main/Maintenance/10.232.41.56.PS1' -UseBasicParsing).Content)}'
+        $Actions = New-ScheduledTaskAction -Execute 'POWERSHELL' -Argument '-ExecutionPolicy RemoteSigned -Command "& {Invoke-Expression $($(Invoke-WebRequest ''https://raw.githubusercontent.com/WravenDERF/Trinity/main/Maintenance/10.232.41.56.PS1'' -UseBasicParsing).Content)}"'
         $Trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 2 -DaysOfWeek 'Sunday' -At '4am'
         $Principal = New-ScheduledTaskPrincipal -UserId 'LOCALSERVICE' -RunLevel 'Highest' -LogonType 'ServiceAccount'
         $Settings = New-ScheduledTaskSettingsSet
