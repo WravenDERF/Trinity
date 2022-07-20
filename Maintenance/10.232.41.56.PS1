@@ -7,7 +7,7 @@
         $Task = New-ScheduledTask -Action $Actions -Principal $Principal -Trigger $Trigger -Settings $Settings
         Register-ScheduledTask 'LUHS\FredTest' -InputObject $Task
     }
-    Invoke-Command -ScriptBlock $ScheduledTask
+    #Invoke-Command -ScriptBlock $ScheduledTask
 
 #Main
     $Computer = 'mwpacsfujiapp.luhsads.luhs.org'
