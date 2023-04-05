@@ -19,7 +19,7 @@ $CECHO = 'C:\Programs\dcmtk-3.6.6-win64-dynamic\bin\echoscu.exe -v'
 
 #Looks through the list and retreives data for each line item.
 Clear-Host
-#Invoke-RestMethod -Uri $WebPath -OutFile $ListPath
+Invoke-RestMethod -Uri $WebPath -OutFile $ListPath
 $List = Import-Csv -Path $ListPath -Delimiter ','
 $MaxCount = (($List | Measure-Object).Count / 100)
 $Index = 0
