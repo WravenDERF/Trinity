@@ -1,5 +1,7 @@
+#Define path for source CSV.
+$WebPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYi8CaFg6lPurVld6lIgsPFHb5DvEGBNVHP1vaPzAd5faOxmC8PC7InXAlxddABw7ZhH6o4E32rk-_/pub?gid=0&single=true&output=csv'
+
 #Define path for csv in.
-#Invoke-RestMethod -Uri "https://docs.google.com/spreadsheets/d/e/2PACX-1vSj54FCarnlcvVdrRjDYol9H6s-7UlH2CX42egQZ9h-KA_NmNfO57IbHGt09BrGxVm-iK4lJjfSbaEj/pub?gid=44801207&single=true&output=csv" -OutFile "C:\Installs\Servers.csv" 
 $ListPath = 'C:\Programs\ServerValidation\Servers.csv'
 
 #Define path for csv out.
@@ -17,6 +19,7 @@ $CECHO = 'C:\Programs\dcmtk-3.6.6-win64-dynamic\bin\echoscu.exe -v'
 
 #Looks through the list and retreives data for each line item.
 Clear-Host
+#Invoke-RestMethod -Uri $WebPath -OutFile $ListPath
 $List = Import-Csv -Path $ListPath -Delimiter ','
 $MaxCount = (($List | Measure-Object).Count / 100)
 $Index = 0
