@@ -1,8 +1,14 @@
-#Define path for source CSV.
-$WebPath = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYi8CaFg6lPurVld6lIgsPFHb5DvEGBNVHP1vaPzAd5faOxmC8PC7InXAlxddABw7ZhH6o4E32rk-_/pub?gid=0&single=true&output=csv'
+#Set debug mode.
+$Debug = [bool]$False
+
+#Set Loop Mode
+$Loop = [bool]$True
 
 #Define path for csv in.
 $ListPath = 'C:\Programs\ServerValidation\Servers.csv'
+
+#Define path for source CSV.
+Invoke-RestMethod -Uri 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYi8CaFg6lPurVld6lIgsPFHb5DvEGBNVHP1vaPzAd5faOxmC8PC7InXAlxddABw7ZhH6o4E32rk-_/pub?gid=140352933&single=true&output=csv' -OutFile $ListPath
 
 #Define path for csv out.
 $ListOut = 'C:\Installs\ServerValidation.csv'
@@ -126,7 +132,7 @@ FOREACH ($TargetComputer in $List) {
     } #End IF ($Target.Status)
 
     #Display results.
-    $Target
+    IF ($Debug) {$Target}
 
     #Add results to collection.
     $DataCollection.Add($Target) | Out-Null 
@@ -141,3 +147,65 @@ $DataCollection | Format-Table
 #IF (Test-Path -Path $ListOut) {Remove-Item -Path $ListOut -Force}
 #Stop-Process -Name 'EXCEL.EXE'
 $DataCollection | Export-Csv -Path $ListOut -NoTypeInformation
+
+IF ($Loop) {
+
+    DO {
+
+        FOREACH ($TargetComputer in $List) {
+
+            #Create an object to hold all data.
+            $Target = [PSCustomObject]@{ 
+                'System' = [string]$TargetComputer.System
+                'Environment' = [string]$TargetComputer.Environment
+                'Role' = [string]$TargetComputer.Role
+                'IP' = [string]$TargetComputer.IP
+                'FQDN' = [string]$Null
+                'RebootOrder' = [string]$TargetComputer.RebootOrder
+                'Status' = [string]$False
+                'Action' = [string]$TargetComputer.Action
+                'ObjectName' = [string]$TargetComputer.ObjectName
+                'Result' = [string]$Null
+            } #End $Target
+
+            #Gets the FQDN of the IP address
+            $ResolveIPtoFQDN = {
+                PARAM ([string]$IP)
+                $Target.FQDN = [System.Net.Dns]::GetHostByAddress($IP).Hostname
+            } #End $ResolveIPtoFQDN
+            Invoke-Command -ScriptBlock $ResolveIPtoFQDN -ArgumentList $Target.IP
+
+            #Pings the target to see if it is up.
+            $Target.Status = Test-Connection -Computer $Target.FQDN -Count 1 -Quiet
+
+            #Gets the last boot info from WMI and returns it as a readable date and time.
+            $ResolveOSLastBoot = {
+                PARAM ([string]$FQDN, [string]$RebootOrder)
+                $Win32_OperatingSystem = Get-WmiObject Win32_OperatingSystem -ComputerName $FQDN
+                $Result = [string]$([System.Management.ManagementDateTimeConverter]::ToDateTime($Win32_OperatingSystem.LastBootUpTime))
+                $Target.Result = "$Result [$RebootOrder]"
+            } #End $ResolveOSLastBoot
+
+            #Logic Switch Statement to look at items
+            IF ($Target.Status) {
+                SWITCH ($Target.Action) {
+                    'Get-OSInfo' {Invoke-Command -ScriptBlock $ResolveOSLastBoot -ArgumentList $Target.FQDN, $Target.RebootOrder}
+                    'Get-ServiceStatus' {Invoke-Command -ScriptBlock $ResolveServiceStatus -ArgumentList $Target.FQDN, $Target.ObjectName}
+                    'Test-CECHO' {Invoke-Command -ScriptBlock $ResolveCECHO -ArgumentList $Target.IP, $($Target.ObjectName).Split('[')[0], $($Target.ObjectName).Split('[]')[1]}
+                    #'Get-WebLink' {Invoke-Command -ScriptBlock $ResolveWebLink -ArgumentList $Target.ObjectName}
+                    'Get-TaskStatus' {Invoke-Command -ScriptBlock $ResolveTaskStatus -ArgumentList $Target.FQDN, $Target.ObjectName}
+                    'Check-Port' {Invoke-Command -ScriptBlock $CheckPortStatus -ArgumentList $Target.FQDN, $Target.ObjectName}
+                } #End SWITCH ($Target.Action)
+            } #End IF ($Target.Status)
+
+            #Add results to collection.
+            $DataCollection.Add($Target) | Out-Null 
+
+            #Display results
+            Clear-Host
+            $DataCollection | Format-Table
+        }
+
+    } UNTIL (0 -eq 1) #End DO
+
+}
