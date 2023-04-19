@@ -132,6 +132,7 @@ FOREACH ($TargetComputer in $List) {
     } #End IF ($Target.Status)
 
     #Display results.
+    Write-Progress -Activity "Progress" -Status "$Progress% Complete" -PercentComplete $Progress -Completed
     IF ($Debug) {$Target}
 
     #Add results to collection.
@@ -201,10 +202,13 @@ IF ($Loop) {
             #Add results to collection.
             $DataCollection.Add($Target) | Out-Null 
 
-            #Display results
-            Clear-Host
-            $DataCollection | Format-Table
         }
+
+        #Display results
+        Clear-Host
+        $DataCollection | Format-Table
+        $DataCollection = New-Object System.Collections.ArrayList
+        Start-Sleep -Seconds 5
 
     } UNTIL (0 -eq 1) #End DO
 
