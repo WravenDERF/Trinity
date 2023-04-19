@@ -8,7 +8,7 @@ $Loop = [bool]$True
 $ListPath = 'C:\Programs\ServerValidation\Servers.csv'
 
 #Define path for source CSV.
-Invoke-RestMethod -Uri 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYi8CaFg6lPurVld6lIgsPFHb5DvEGBNVHP1vaPzAd5faOxmC8PC7InXAlxddABw7ZhH6o4E32rk-_/pub?gid=140352933&single=true&output=csv' -OutFile $ListPath
+Invoke-RestMethod -Uri 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYi8CaFg6lPurVld6lIgsPFHb5DvEGBNVHP1vaPzAd5faOxmC8PC7InXAlxddABw7ZhH6o4E32rk-_/pub?gid=0&single=true&output=csv' -OutFile $ListPath
 
 #Define path for csv out.
 $ListOut = 'C:\Installs\ServerValidation.csv'
