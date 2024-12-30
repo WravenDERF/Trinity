@@ -1,4 +1,4 @@
-﻿#Check AD for AD Info
+#Check AD for AD Info
 #Username: Trinity-Health\UTHDLifeImage
 #Password: EeWiCdQJjJDyS0IkKV5
 
@@ -29,75 +29,75 @@ $Searcher
 #C:\Programs\GetUsersFromAD\Systems - LifeImageUsers.csv
 
 # Import the Active Directory module (only necessary if it's not already loaded)
-Import-Module ActiveDirectory
+    Import-Module ActiveDirectory
 
 #Get the list for output.
-$UserListPath = 'C:\Programs\GetUsersFromAD\Systems - LifeImageUsers.csv'
-$UserList = Import-Csv -Path $UserListPath -Delimiter ','
-#$UserList = 'xhpk6327'
-$OutputCollection = New-Object System.Collections.ArrayList
+    $UserListPath = 'C:\Programs\GetUsersFromAD\Systems - LifeImageUsers.csv'
+    $UserList = Import-Csv -Path $UserListPath -Delimiter ','
+    #$UserList = 'xhpk6327'
+    $OutputCollection = New-Object System.Collections.ArrayList
 
 # Function to get the Manager for a single user
-function Get-ADUserManager {
-    param (
-        [string]$username  # Accepts the username (sAMAccountName) as input
-    )
+    FUNCTION Get-ADUserManager {
+        PARAM (
+            [string]$username  # Accepts the username (sAMAccountName) as input
+        )
 
-    # Retrieve the user from Active Directory
-    $user = Get-ADUser -Identity $username -Properties Manager
-        $user = Get-ADUser -Identity $username -Properties Enabled
+        # Retrieve the user from Active Directory
+        $user = Get-ADUser -Identity $username -Properties Manager
+            $user = Get-ADUser -Identity $username -Properties Enabled
 
-    # If the Manager property is populated, retrieve and display the Manager's information
-    if ($user.Manager) {
-        $manager = Get-ADUser -Identity $user.Manager
-        Write-Output "User: $username | Manager: $($manager.Name)"
+        # If the Manager property is populated, retrieve and display the Manager's information
+        if ($user.Manager) {
+            $manager = Get-ADUser -Identity $user.Manager
+            Write-Output "User: $username | Manager: $($manager.Name)"
+        }
+        else {
+            Write-Output "User: $username has no manager listed."
+        }
     }
-    else {
-        Write-Output "User: $username has no manager listed."
-    }
-}
 
+#Get user data for each entry from Life Image
 # Example: Retrieve the manager for a single user (replace 'jdoe' with the actual username)
 # Get-ADUserManager -username 'xhpk6327'
-
 # Example: Retrieve the manager for multiple users
 
-foreach ($Target in $UserList) {
+    FOREACH ($Target in $UserList) {
 
-    $Target.username
+        #$Target.username
 
-    $User = [PSCustomObject]@{
-        'PullDate' = [string]$Target.PullDate
+        $User = [PSCustomObject]@{
+            'PullDate' = [string]$Target.PullDate
 
-        'ActiveAccount' = [bool]$False
-        'Manager' = [string]$Null
-        'JobTitle' = [string]$Null
+            'ActiveAccount' = [bool]$False
+            'Manager' = [string]$Null
+            'JobTitle' = [string]$Null
 
-        'username' = [string]$Target.username
-        'family_name' = [string]$Target.family_name
-        'suffix' = [string]$Target.suffix
-        'given_name' = [string]$Target.given_name
-        'profession' = [string]$Target.profession
-        'email_address' = [string]$Target.email_address
-        'domain' = [string]$Target.domain
-        'ROLE' = [string]$Target.ROLE
-        'GROUPS' = [string]$Target.GROUPS
-        'SPECIALTY' = [string]$Target.SPECIALTY
-        'latest_login_date' = [string]$Target.latest_login_date
+            'username' = [string]$Target.username
+            'family_name' = [string]$Target.family_name
+            'suffix' = [string]$Target.suffix
+            'given_name' = [string]$Target.given_name
+            'profession' = [string]$Target.profession
+            'email_address' = [string]$Target.email_address
+            'domain' = [string]$Target.domain
+            'ROLE' = [string]$Target.ROLE
+            'GROUPS' = [string]$Target.GROUPS
+            'SPECIALTY' = [string]$Target.SPECIALTY
+            'latest_login_date' = [string]$Target.latest_login_date
+        }
+
+        # Retrieve the user from Active Directory
+        $AD = Get-ADUser -Identity $Target.username -Properties 'Manager' , 'Enabled' , 'Title'
+        $User.ActiveAccount = $AD.Enabled
+        $User.Manager = $(Get-ADUser -Identity $($AD.Manager) -Properties 'Name').Name
+        $User.JobTitle = $AD.Title
+
+        #$User
+
+        $OutputCollection.Add($User) | Out-Null
+
+
     }
-
-    # Retrieve the user from Active Directory
-    $AD = Get-ADUser -Identity $Target.username -Properties 'Manager' , 'Enabled' , 'Title'
-    $User.ActiveAccount = $AD.Enabled
-    $User.Manager = $(Get-ADUser -Identity $($AD.Manager) -Properties 'Name').Name
-    $User.JobTitle = $AD.Title
-
-    $User
-
-    $OutputCollection.Add($User) | Out-Null
-
-
-}
 
 $OutputCollectionPath = 'C:\Programs\GetUsersFromAD\UserList.csv'
 $OutputCollection | Export-Csv -Path $OutputCollectionPath -NoTypeInformation
